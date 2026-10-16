@@ -1,0 +1,14 @@
+{
+  "name": "claude-exam-prep",
+  "short_name": "Exam Prep",
+  "description": "Practice for the Claude Certified Architect exams",
+  "start_url": "/practice",
+  "display": "standalone",
+  "background_color": "#F4EFE6",
+  "theme_color": "#201C17",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
