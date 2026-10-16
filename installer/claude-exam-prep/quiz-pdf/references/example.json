@@ -1,0 +1,67 @@
+{
+  "title": "Sample Study Deck",
+  "subtitle": "A tiny demo dataset for the quiz-pdf skill",
+  "meta": { "kicker": "quiz-pdf demo", "author": "Your Name", "date": "2026" },
+  "page": "scribe",
+  "sections": [
+    {
+      "name": "General Knowledge",
+      "questions": [
+        {
+          "question": "Which planet is the largest in our solar system?",
+          "context": "A warm-up item — no scenario needed.",
+          "choices": ["Earth", "Jupiter", "Saturn", "Neptune"],
+          "answer": "B",
+          "explanation": "Jupiter is the largest planet, with a mass more than twice that of all the other planets combined.",
+          "topic": "Astronomy"
+        },
+        {
+          "question": "What is the chemical symbol for **sodium**?",
+          "choices": [
+            { "label": "A", "text": "So" },
+            { "label": "B", "text": "Sd" },
+            { "label": "C", "text": "Na" },
+            { "label": "D", "text": "S" }
+          ],
+          "answer": "C",
+          "explanation": "Sodium's symbol Na comes from the Latin 'natrium'.",
+          "distractor_notes": {
+            "A": "There is no element with symbol 'So'.",
+            "D": "'S' is sulfur, not sodium."
+          },
+          "topic": "Chemistry",
+          "your_answer": "D"
+        }
+      ]
+    },
+    {
+      "name": "Computing",
+      "questions": [
+        {
+          "question": "In JSON, which of the following is a valid way to represent a list of values?",
+          "choices": {
+            "A": "{ 1, 2, 3 }",
+            "B": "[ 1, 2, 3 ]",
+            "C": "( 1, 2, 3 )",
+            "D": "< 1, 2, 3 >"
+          },
+          "answer": "B",
+          "explanation": "Square brackets denote a JSON array; curly braces denote an object.",
+          "topic": "Data formats"
+        },
+        {
+          "question": "What does the `git clone` command do?",
+          "choices": [
+            "Creates a new empty repository",
+            "Copies a remote repository to your local machine",
+            "Uploads local commits to a remote",
+            "Deletes untracked files"
+          ],
+          "answer": 2,
+          "explanation": "`git clone` downloads a full copy of a remote repository, including its history, to your local machine. (This item uses a 1-based index for 'answer'.)",
+          "topic": "Version control"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+# Personal session data
+workspace.md
+fexam-performance.json
+pexam-performance.json
+fexam-scorereport.json
+scorereport*.pdf*
+*-performance.json.bak
+
+# Local Claude Code settings and memory (personal, not shared)
+.claude/settings.local.json
+memory/
+
+# Exam Prep app: per-session transcripts (personal)
+.exam-app/
