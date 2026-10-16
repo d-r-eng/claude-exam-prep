@@ -1,0 +1,1384 @@
+{
+  "questions": [
+    {
+      "number": 1,
+      "question": "A logistics company runs an autonomous shipping-route optimizer. The agent loop calls the model, inspects the response, and uses a while True construct that breaks only when the model returns an empty content array. Under load testing the loop spins indefinitely on some requests even though the model has plainly finished - no tool calls remain and the prose is complete. What is the correct fix to the termination logic?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Break when response.content[0].type == \"text\", since a text-first response means the model finished, queued no tools, and needs no turn."
+        },
+        {
+          "letter": "B",
+          "text": "Adopt a 25-iteration cap as the exit condition, log a warning when it trips, and alert on the rate so runaway loops stay bounded."
+        },
+        {
+          "letter": "C",
+          "text": "Switch to streaming and exit on the terminal message_stop event, a stricter completion signal than any response field."
+        },
+        {
+          "letter": "D",
+          "text": "Branch on the response's stop_reason field: continue the loop on tool_use, exit on end_turn, and treat max_tokens as a truncated turn."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 2,
+      "question": "An e-commerce recommendation agent calls fetch_user_purchase_history. The tool returns a JSON list of past orders, and the application then issues a new Messages API request asking Claude to generate recommendations. Claude consistently ignores the purchase history and returns generic suggestions. Code review shows that after the tool executes, the application builds a fresh messages array containing only the original user request. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Inject the tool's JSON output into the system prompt so the fetched orders arrive as authoritative context."
+        },
+        {
+          "letter": "B",
+          "text": "Append the tool output as a message with role tool, the dedicated role the API gives for closing out a tool call."
+        },
+        {
+          "letter": "C",
+          "text": "Preserve the assistant turn holding the tool_use block, then append a user turn carrying the matching tool_result block."
+        },
+        {
+          "letter": "D",
+          "text": "Summarize the returned orders into a short profile - top categories, average order value, recency - and pass that profile in the next user turn."
+        }
+      ],
+      "correct": "C"
+    },
+    {
+      "number": 3,
+      "question": "A healthcare scheduling platform runs a coordinator agent whose system prompt mandates HIPAA- compliant language and forbids storing raw patient identifiers. The coordinator spawns a subagent to draft appointment reminder emails, and the subagent repeatedly includes full Social Security Numbers in the drafts. The team's assumption is that the subagent should have inherited the coordinator's constraints because both run inside the same logical workflow. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Do nothing to either prompt, since a spawned subagent explicitly inherits the coordinator's system prompt through the shared session context."
+        },
+        {
+          "letter": "B",
+          "text": "Restate the HIPAA constraints and the data-handling rules in the subagent's own system prompt, or inline them in the spawning call."
+        },
+        {
+          "letter": "C",
+          "text": "Route the drafting step through a dedicated PHI-safe subagent that can read appointment times but not identifiers."
+        },
+        {
+          "letter": "D",
+          "text": "Add a post-processing regex that strips anything matching an SSN pattern from each draft, before the email is sent."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 4,
+      "question": "A cybersecurity firm's agent audits cloud configurations across five service domains: IAM, networking, storage, compute, and billing. The coordinator decomposes the work by spawning one subagent per domain. Each domain report is thorough and accurate. But cross-domain findings - an IAM role granting overly broad access to a storage bucket, for example - are entirely absent from the final report. The security lead wants to know where to fix this. What is the most likely root cause?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The coordinator's decomposition: a strictly per-domain split has no stage that reasons across domains, so the cross-domain integration pass is missing."
+        },
+        {
+          "letter": "B",
+          "text": "The storage subagent, which had the bucket ACLs explicitly in hand when it enumerated them and should therefore have flagged the policy itself."
+        },
+        {
+          "letter": "C",
+          "text": "Per-subagent context limits, which stop each subagent from seeing sibling findings; an explicit increase in each one's context allocation would let them correlate."
+        },
+        {
+          "letter": "D",
+          "text": "The absence of a threat-intelligence step, which is why the report contains no known cross-domain vulnerability patterns; a search-only subagent would surface them."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 5,
+      "question": "A product analytics team builds a coordinator agent that breaks quarterly business reviews into subtasks and delegates them to specialized subagents - revenue analysis, churn analysis, and growth metrics. The coordinator runs on the Claude Agent SDK with its tools option set to [\"Read\", \"Edit\", \"Bash\", \"WebSearch\"]. In testing, no subagent is ever spawned; the coordinator silently performs all the work itself, inline. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Add a line to the coordinator's system prompt stating that it may delegate, that delegation is expected, and that each analysis belongs to its own subagent."
+        },
+        {
+          "letter": "B",
+          "text": "Define the three analyses - revenue, churn, and growth - as separate AgentDefinition entries, then reference them from the coordinator's prompt."
+        },
+        {
+          "letter": "C",
+          "text": "Switch to a model tier that supports multi-agent orchestration natively, since delegation depends on the model's trained capability rather than on the configured tool list."
+        },
+        {
+          "letter": "D",
+          "text": "Add the subagent-spawning tool Agent (formerly Task) to the coordinator's tools option, since that is what makes delegation possible at all."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 6,
+      "question": "A coordinator needs to run four independent subagent tasks and wants them to execute concurrently rather than one after another. How are the tasks dispatched?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Emit all four subagent tool calls inside a single coordinator response."
+        },
+        {
+          "letter": "B",
+          "text": "Emit one subagent tool call per response, and let the runtime overlap them."
+        },
+        {
+          "letter": "C",
+          "text": "Emit one subagent call whose argument is a list of the four task descriptions."
+        },
+        {
+          "letter": "D",
+          "text": "Emit four calls, setting a concurrency flag on each so the runtime batches them."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 7,
+      "question": "A fintech startup builds a wire transfer agent. Its system prompt states: \"Never approve a wire transfer exceeding $25,000 without a secondary authorization code.\" During a penetration test, a red-team member embeds a prompt injection in a recipient's bank memo field instructing Claude to ignore the limit and process the transfer immediately. The agent processes a $40,000 wire with no authorization code. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Rewrite the system prompt with a firmer statement of the $25,000 limit, an instruction to distrust transfer directives found in tool output, and a worked refusal example."
+        },
+        {
+          "letter": "B",
+          "text": "Move to a more capable model tier, which is measurably more resistant to prompt injection and less likely to be talked out of a stated monetary limit by adversarial text."
+        },
+        {
+          "letter": "C",
+          "text": "Insert a second model in the pipeline whose only job is to review the first model's proposed transfer against policy and veto it before execution, giving an independent check."
+        },
+        {
+          "letter": "D",
+          "text": "Add a hook that fires before the transfer tool executes, inspects the amount in the actual tool arguments, and denies the call when it exceeds $25,000 without a valid code."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 8,
+      "question": "A legal document platform's agent calls a redact_pii tool to scrub contracts before storage. Compliance requires that every redacted document be written to an immutable audit trail after redaction completes but before Claude generates its next response summarizing the changes. A junior engineer suggests simply adding the log call inside the tool's own implementation function. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Write the audit entry from a PostToolUse hook, which runs after the redaction tool has returned its result and before that result is handed back to the model for processing."
+        },
+        {
+          "letter": "B",
+          "text": "Keep the log call inside the tool implementation, which runs at the same point in the loop as a PostToolUse hook would and so meets the ordering rule."
+        },
+        {
+          "letter": "C",
+          "text": "Write the audit entry from a PreToolUse hook, which captures the document at the moment of the call and therefore preserves the original text alongside the redaction request."
+        },
+        {
+          "letter": "D",
+          "text": "Instruct Claude to emit the audit entry as a structured block inside its next text response, then parse that block out programmatically and forward it to the immutable log."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 9,
+      "question": "A PreToolUse hook needs to stop some commands outright and send others to the user for confirmation. Which field carries that decision, and what values does it take?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "permissionDecision, which accepts only allow and deny for each call."
+        },
+        {
+          "letter": "B",
+          "text": "toolDecision, which accepts permit, block, confirm, and passthrough."
+        },
+        {
+          "letter": "C",
+          "text": "decision, which accepts block plus a reason string explaining the block."
+        },
+        {
+          "letter": "D",
+          "text": "permissionDecision, which accepts allow, deny, ask, and defer."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 10,
+      "question": "A supply chain platform processes inbound shipment disruption reports. Some are simple - one delayed truck. Others are complex - a port closure affecting 200 SKUs across 14 suppliers. The team built a fixed pipeline: parse the report, then identify affected SKUs, then rank re-routing options, then draft supplier communications. Simple cases work well. Complex port closures, however, miss critical escalation paths and regulatory notifications that only apply to large-scale events. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Extend the fixed pipeline with extra stages covering every known edge case, escalation and regulatory paths included."
+        },
+        {
+          "letter": "B",
+          "text": "Switch to dynamic decomposition, letting the coordinator assess the disruption's severity and scope before it generates any subtasks."
+        },
+        {
+          "letter": "C",
+          "text": "Run the full complex pipeline on every report regardless of severity, accepting the extra cost on the simple cases."
+        },
+        {
+          "letter": "D",
+          "text": "Build two fixed pipelines, one for simple reports and one for complex ones, with a classifier routing between them."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 11,
+      "question": "A financial services firm runs a quarterly vendor risk review. Every review must cover exactly the same four aspects for each vendor - security posture, financial stability, contractual compliance, and concentration risk - and auditors require that the four be assessed identically across vendors and quarters so results are comparable year over year. An engineer, having read that dynamic decomposition is more flexible, proposes letting the coordinator decide at runtime which aspects to examine per vendor. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Adopt the proposed dynamic decomposition, since a coordinator reasoning about each vendor at runtime produces a more relevant and better-targeted review."
+        },
+        {
+          "letter": "B",
+          "text": "Keep a fixed sequential decomposition, since the four aspects are predetermined and audit comparability depends on running them identically."
+        },
+        {
+          "letter": "C",
+          "text": "Keep a fixed decomposition but let the coordinator reorder the four aspects per vendor, based on which of them the prior quarter flagged as risky."
+        },
+        {
+          "letter": "D",
+          "text": "Use dynamic decomposition for the analysis, then add a fixed reconciliation stage that checks whether all four aspects were covered and re-runs any the coordinator chose to skip."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 12,
+      "question": "A DevOps platform supports long-running infrastructure provisioning sessions. An agent has helped an engineer design a Terraform module structure over several interactions, but no terraform apply has run yet. The engineer closes their laptop mid-session. The next morning they want to continue exactly where they left off - same single line of work - and have the agent apply the planned changes. No files have changed overnight. A colleague suggests starting fresh and re-explaining everything. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Keep the existing session and resume it, which restores the full conversation state along with the design rationale behind it."
+        },
+        {
+          "letter": "B",
+          "text": "Fork the interrupted session, then apply the planned changes inside that fork so the original stays untouched."
+        },
+        {
+          "letter": "C",
+          "text": "Start a fresh session, and paste the previous plan into the new conversation by hand to rebuild the context."
+        },
+        {
+          "letter": "D",
+          "text": "Start a fresh session, and inject a hand-written summary of yesterday's design decisions as a system prompt."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 13,
+      "question": "A customer support platform uses a triage agent that classifies incoming tickets and hands off to a specialist agent - billing, technical, or account management. The billing specialist frequently asks clarifying questions the customer already answered during triage, frustrating customers and inflating handle time. Reviewing the handoff, the team finds the specialist receives only the ticket ID and a category label. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Have the triage agent produce a self-contained handoff summary covering the customer's intent, the facts gathered, and the decisions made."
+        },
+        {
+          "letter": "B",
+          "text": "Grant the specialist a self-contained read-only view of the ticketing database, the customer record, and the triage transcript to look up what it needs."
+        },
+        {
+          "letter": "C",
+          "text": "Give the specialist the full triage transcript and let it read back through the conversation for the details it needs."
+        },
+        {
+          "letter": "D",
+          "text": "Merge the triage and specialist agents into a single agent, removing the handoff, the payload, and any chance of a dropped fact."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 14,
+      "question": "A pharmaceutical research platform processes drug interaction queries. Regulation requires that any query involving a controlled substance be written to an immutable audit ledger before any information is returned to the user. A compliance audit finds three controlled-substance queries that were answered with no corresponding ledger entry. The system prompt says \"always log controlled substance queries,\" but the model occasionally skips the step when the conversation is long and the instruction has drifted toward the middle of the prompt. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Move the logging instruction to the very top of the system prompt, the position the model attends to most reliably in a long context."
+        },
+        {
+          "letter": "B",
+          "text": "Repeat the logging instruction in the system prompt and again in every user turn, re-anchoring it at the most recent position."
+        },
+        {
+          "letter": "C",
+          "text": "Write the ledger entry from a PostToolUse hook on the knowledge-base search tool, so the framework records the query rather than the model doing it."
+        },
+        {
+          "letter": "D",
+          "text": "Write the ledger entry from a UserPromptSubmit hook, which fires on submission before Claude has begun processing the prompt at all."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 15,
+      "question": "A machine learning platform's agent is helping a data scientist explore hyperparameter tuning. They have already established a shared understanding of the model architecture, the training data characteristics, and the business objectives. The data scientist now wants to pursue two fundamentally different approaches at the same time - a Bayesian optimization strategy and a reinforcement-learning auto-tuner - with each exploration starting from that same established context but diverging from there, and with the two lines of work kept separate for later comparison. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Resume the existing session twice, opening it in two parallel threads, and explore one approach in each so both inherit the baseline without duplicating any setup work."
+        },
+        {
+          "letter": "B",
+          "text": "Run the two explorations sequentially in the single existing session, appending the Bayesian results to the context before beginning the reinforcement-learning run."
+        },
+        {
+          "letter": "C",
+          "text": "Fork the session at the point where the shared context is established, producing two independent branches that both begin from an identical baseline and then diverge."
+        },
+        {
+          "letter": "D",
+          "text": "Start two separate fresh sessions, one per approach, re-establishing the architecture, data characteristics, and business objectives by hand in each to reach a known state."
+        }
+      ],
+      "correct": "C"
+    },
+    {
+      "number": 16,
+      "question": "A backend team uses a code-review agent that analyzes their entire API service repository of 78 files to give holistic feedback. An engineer spends 90 minutes refactoring three specific files: the authentication middleware, the rate limiter, and the request validator. She asks the agent to re-review. The agent's default behavior is to re-explore all 78 files from scratch before responding, burning tokens and several minutes. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Accept the full re-exploration of all 78 files, since only a complete re-read keeps the agent's understanding of the codebase current."
+        },
+        {
+          "letter": "B",
+          "text": "Open a new session whose entire context is the three changed files, so the agent reviews them in isolation with no accumulated history and no unrelated code to distract it."
+        },
+        {
+          "letter": "C",
+          "text": "Permanently reduce the review scope by archiving the 75 unchanged files out of the repository, so that every subsequent review pass is inexpensive by construction."
+        },
+        {
+          "letter": "D",
+          "text": "Tell the agent which three files changed and what changed in each, scoping the review to those files and the code that directly depends on them."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 17,
+      "question": "A logistics platform exposes two tools: track_shipment (described as \"tracks a package\") and get_delivery_estimate (described as \"returns an estimate\"). When users ask \"When will my order arrive?\", Claude consistently calls get_delivery_estimate even when the shipment is already in transit and track_shipment would return a live ETA. The engineer proposes adding a routing classifier that pre-processes each query and decides which tool to call. What should the engineer do first?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Put the routing classifier ahead of the model, taking tool selection out of its hands and making the decision explicit, testable, and independently tunable."
+        },
+        {
+          "letter": "B",
+          "text": "Merge the two tools into a single shipment_info tool that internally decides whether to return live tracking or an estimate, eliminating the ambiguity at its source."
+        },
+        {
+          "letter": "C",
+          "text": "Force track_shipment via tool_choice for any query the system recognizes as shipment-related, selecting the live-ETA path whenever a shipment is actually in transit."
+        },
+        {
+          "letter": "D",
+          "text": "Expand both tool descriptions to state purpose, expected input, and explicitly when each one applies rather than the other, including when not to use it."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 18,
+      "question": "A developer is writing the description for a new tool, get_flight_status. The current text reads: \"Gets the status of a flight.\" A senior engineer says this will cause routing errors in production, because the same agent also exposes search_flights. The developer must rewrite the description. What should it contain?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "A one-line purpose statement, plus an explicit JSON type signature for every parameter, return field, and error the tool can produce."
+        },
+        {
+          "letter": "B",
+          "text": "The provider's full API reference, covering every request parameter, response field, and error code the flight endpoint returns."
+        },
+        {
+          "letter": "C",
+          "text": "The tool's purpose, its expected input format, an example query, and explicit boundaries against search_flights, including when not to use it."
+        },
+        {
+          "letter": "D",
+          "text": "A more specific name, get_realtime_flight_status, since the name is read on every selection, is compact, and disambiguates."
+        }
+      ],
+      "correct": "C"
+    },
+    {
+      "number": 19,
+      "question": "A healthcare scheduling agent calls book_appointment and receives {\"error\": \"upstream_calendar_service_unavailable\", \"retry_after\": 5}. The booking runs asynchronously and the agent has up to 30 seconds to respond. How should the agent handle this response?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Classify it as a business rule error and halt, since the calendar declined the booking, and repeating a refused operation is unproductive."
+        },
+        {
+          "letter": "B",
+          "text": "Classify it as a validation error and ask the user to correct the appointment details they had submitted."
+        },
+        {
+          "letter": "C",
+          "text": "Classify it as a transient fault and retry after the delay the response indicates, with a capped number of attempts."
+        },
+        {
+          "letter": "D",
+          "text": "Classify it as a permanent failure and surface it to the user as a booking error, suggesting they retry later."
+        }
+      ],
+      "correct": "C"
+    },
+    {
+      "number": 20,
+      "question": "An e-commerce agent calls get_wishlist_items(customer_id=\"C-8821\") and receives {\"items\": []}. The tool reports HTTP 200 and its logs confirm the query executed successfully against the wishlist table. The agent retries three times, receiving the same empty list each time; the fourth attempt fails because the rate limit was exceeded. The engineer must diagnose the problem. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Return the empty list to the model as a successful result, and take this particular call off the retry path."
+        },
+        {
+          "letter": "B",
+          "text": "Investigate whether the tool's auth token has expired, causing it to return an empty collection instead of an error."
+        },
+        {
+          "letter": "C",
+          "text": "Add a fallback that calls get_purchase_history whenever the wishlist lookup itself comes back empty."
+        },
+        {
+          "letter": "D",
+          "text": "Check whether customer_id is being passed with a stale prefix, or the wrong casing, before accepting the empty result."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 21,
+      "question": "A content moderation pipeline must invoke log_moderation_decision on every piece of content reviewed, regardless of what Claude judges necessary. Three tools are available to the model in this request. The engineer is configuring tool_choice. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Set tool_choice to \"any\", which obliges a tool call each turn, on every item, so the log is covered."
+        },
+        {
+          "letter": "B",
+          "text": "Set tool_choice to \"auto\", and instruct the model, in the system prompt, to log each and every item that it reviews."
+        },
+        {
+          "letter": "C",
+          "text": "Set tool_choice to \"none\", and state, in the tool's own description, that it has to be called on each review."
+        },
+        {
+          "letter": "D",
+          "text": "Set tool_choice to {\"type\": \"tool\", \"name\": \"log_moderation_decision\"}, which forces that one named tool on every request."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 22,
+      "question": "An architect is designing an insurance claims system. A proposed single agent is given 13 tools: submit_claim, get_claim_status, update_claim, close_claim, get_policy_details, verify_coverage, calculate_payout, approve_payout, reject_claim, notify_claimant, escalate_to_adjuster, generate_report, and archive_claim. Performance testing shows frequent wrong-tool selections, spread across all 13 rather than concentrated in one confusable pair. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Write fuller descriptions for all 13 tools, drawing explicit boundaries between each tool and its nearest neighbors."
+        },
+        {
+          "letter": "B",
+          "text": "Add a tool index to the system prompt, listing all 13 tools with one-line summaries - purpose, inputs, and stage - for the model to consult before choosing."
+        },
+        {
+          "letter": "C",
+          "text": "Decompose the system into role-scoped intake, coverage, and resolution agents, each holding roughly four to five tools for that one role."
+        },
+        {
+          "letter": "D",
+          "text": "Keep all 13 tools on one agent and add few-shot examples showing correct selection for the ambiguous pairs, the payout path, and the closure path."
+        }
+      ],
+      "correct": "C"
+    },
+    {
+      "number": 23,
+      "question": "An MCP server definition is committed to .mcp.json at a repository root. Which scope does that give it?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "User scope: this engineer picks it up wherever they work, in any repository."
+        },
+        {
+          "letter": "B",
+          "text": "Local scope: private to the engineer and to that one project only."
+        },
+        {
+          "letter": "C",
+          "text": "Machine scope: every account on the host receives it, regardless of project."
+        },
+        {
+          "letter": "D",
+          "text": "Project scope: shared with everyone on that repository, and active in no other."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 24,
+      "question": "A team is configuring an MCP server that calls a third-party geolocation API. The server needs the API key at runtime, and the configuration must be committed so the whole team gets the server automatically. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Keep the key hardcoded in the env block, since .mcp.json is configuration rather than source code."
+        },
+        {
+          "letter": "B",
+          "text": "Move the key into a separate secrets.json file and reference that file from .mcp.json instead of inlining it."
+        },
+        {
+          "letter": "C",
+          "text": "Base64-encode the API key before placing it in .mcp.json, so the credential is not readable in the diff."
+        },
+        {
+          "letter": "D",
+          "text": "Reference the key as ${GEOAPI_KEY} in .mcp.json and supply the real value from the shell, so the committed file holds no secret."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 25,
+      "question": "A developer needs two things in a large monorepo: every file that imports an internal library called invoice_utils, and every file whose name matches invoice*.py. They are deciding how to split the work between Grep and Glob. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Use Grep to find the import, since that is a content search, and Glob for the filename pattern, since that is a path search."
+        },
+        {
+          "letter": "B",
+          "text": "Use Grep for both questions, scoping the second search with its glob parameter so it reports only the files whose names match invoice*.py."
+        },
+        {
+          "letter": "C",
+          "text": "Use Glob to enumerate the candidate modules first, then run Grep across that result set, filtering the matches down by filename pattern."
+        },
+        {
+          "letter": "D",
+          "text": "Use Glob for both questions, since it matches a filename pattern and can, in the same operation, scan the contents of the files it matched."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 26,
+      "question": "An engineer joins a new team and must understand how a large Python service initializes its background job processing subsystem. The codebase has hundreds of files and they have no idea where to start. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Glob all .py files, then Read them in order - entry points, then packages, then modules - until the job processing code turns up."
+        },
+        {
+          "letter": "B",
+          "text": "Grep for entry-point terms such as JobQueue, worker_init, or register_job, then use Read to follow the imports in the best hits."
+        },
+        {
+          "letter": "C",
+          "text": "Grep for every function definition across the codebase and read the complete output, identifying which definitions relate to job processing before opening any file."
+        },
+        {
+          "letter": "D",
+          "text": "Read main.py and __init__.py first, since a service's initialization path is anchored in those files and following it is the shortest route to the subsystem."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 27,
+      "question": "In a multi-agent financial reporting system, a ReportingAgent must verify that a generated report's figures match the underlying transaction records before sending. The transaction data lives in a database owned by TransactionAgent. Today every verification request is routed through the coordinator, which calls query_transactions and hands the result back to ReportingAgent. Roughly 85% of these verifications are simple figure checks. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Give ReportingAgent a narrowly scoped verify_report_figures(report_id) tool that queries only the transactions behind that report."
+        },
+        {
+          "letter": "B",
+          "text": "Have ReportingAgent call query_transactions directly with broadly scoped read privileges, so it depends on no other agent."
+        },
+        {
+          "letter": "C",
+          "text": "Keep routing every verification through the coordinator, which scopes all database access to one accountable agent."
+        },
+        {
+          "letter": "D",
+          "text": "Merge ReportingAgent and TransactionAgent into one agent, so verification happens inside a single scoped context."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 28,
+      "question": "A data engineering team onboards a contractor. The project has a CLAUDE.md at the repo root with pipeline coding standards and naming conventions. After a week the contractor reports that Claude gives inconsistent advice that does not match team standards - yet every senior engineer sees correct behavior, and the contractor runs Claude Code from the same repo directory. Investigation reveals the contractor has a ~/.claude/CLAUDE.md with personal preferences that contradict the project rules. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Have the contractor delete their ~/.claude/CLAUDE.md and place a copy of the project's CLAUDE.md there instead, so the team standards get loaded from any working directory."
+        },
+        {
+          "letter": "B",
+          "text": "Explain that the user-level file is loaded alongside the project file rather than replaced by it, and have the contractor remove or reconcile the conflicting preferences."
+        },
+        {
+          "letter": "C",
+          "text": "Move the project CLAUDE.md into a subdirectory, so that it is discovered later in the load order than the user-level file and overrides it."
+        },
+        {
+          "letter": "D",
+          "text": "Add a priority: project header to the project CLAUDE.md, instructing Claude to disregard user-level instructions whenever a project-level file is present."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 29,
+      "question": "A platform team maintains a large monorepo. The root CLAUDE.md has grown to cover general conventions, cloud deployment rules, database policies, and frontend guidelines in one file. New hires find it overwhelming, and updates cause merge conflicts because several sub-teams edit it simultaneously. All of these rules genuinely do apply project-wide and must remain always in effect. A tech lead wants to split it into separately owned pieces without changing the set of instructions Claude loads. What is the correct fix?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Create a separate CLAUDE.md in each relevant subdirectory, and delete the root file, removing the shared document."
+        },
+        {
+          "letter": "B",
+          "text": "Split the content into topic files under .claude/rules/, with no paths frontmatter, so each still loads at launch."
+        },
+        {
+          "letter": "C",
+          "text": "Store each topic as a skill under .claude/skills/, and document that engineers must invoke the relevant ones each session."
+        },
+        {
+          "letter": "D",
+          "text": "Rename the root file to CLAUDE.base.md, and have engineers run a script that concatenates all the rule files beforehand."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 30,
+      "question": "A backend engineer notices Claude Code has been giving different code style suggestions over the past three days on the same project. Sometimes it enforces snake_case for variables; other times it permits camelCase. The project CLAUDE.md clearly specifies snake_case. The engineer suspects something in the loaded configuration is drifting but does not know what changed. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Restart Claude Code, and paste the contents of CLAUDE.md at the start of every session."
+        },
+        {
+          "letter": "B",
+          "text": "Add the snake_case rule as an inline comment at the top of each source file in the project."
+        },
+        {
+          "letter": "C",
+          "text": "Run /context to see which memory files loaded this session, then open the offending one with /memory."
+        },
+        {
+          "letter": "D",
+          "text": "Delete the CLAUDE.md, and rewrite it using much more emphatic language about the convention."
+        }
+      ],
+      "correct": "C"
+    },
+    {
+      "number": 31,
+      "question": "A developer works across many client repositories. She has a personal three-step workflow for opening a browser preview after any frontend change and runs it constantly. She wants to automate it as a Claude Code slash command. It is purely personal, must be available in every project she touches, and must never appear in a client repo or be shared with teammates. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Create the command under .claude/commands/ in each repo she works in, adding that path to every .gitignore."
+        },
+        {
+          "letter": "B",
+          "text": "Create the command under ~/.claude/commands/, giving it user scope so it is available in every project but committed to none."
+        },
+        {
+          "letter": "C",
+          "text": "Define the workflow in the project's CLAUDE.md under a ## Commands heading so Claude picks it up there."
+        },
+        {
+          "letter": "D",
+          "text": "Skip the slash command, and use a shell alias that invokes Claude with the three steps inline via the -p flag."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 32,
+      "question": "A DevOps engineer is packaging a deploy-dry-run skill that simulates a deployment. Its output is long, and none of it should land in the main session. It needs to shell out and read files without stopping for approval each time, and it must not be able to modify anything on disk. It also takes the name of a target environment, which should be surfaced to the user as they type the command. Which frontmatter satisfies all of that?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Set context: fork, allowed-tools: Bash Read, and an argument-hint, since listing only Bash and Read is what withholds the write tools."
+        },
+        {
+          "letter": "B",
+          "text": "Set context: fork, add disallowed-tools: Write Edit, and describe the shell access, the file reads, and the environment argument in the skill body."
+        },
+        {
+          "letter": "C",
+          "text": "Set context: fork, allowed-tools: Bash Read, disallowed-tools: Write Edit, and an argument-hint naming the environment."
+        },
+        {
+          "letter": "D",
+          "text": "Set agent: deploy-dry-run with allowed-tools: Bash Read, and declare the environment in an arguments list so the runner prompts for it."
+        }
+      ],
+      "correct": "C"
+    },
+    {
+      "number": 33,
+      "question": "During an architecture review, a staff engineer notices the team's CLAUDE.md has grown to include 15 specialized procedures - how to run load tests, how to generate API mocks, how to analyze query plans, and more. Each is several paragraphs long, the file is now 600 lines, and Claude frequently applies procedures at unexpected times. Each procedure is relevant only to the occasional task that needs it. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Break the 600-line file into multiple CLAUDE.md files stored in the subdirectories corresponding to each procedure's domain, so each loads only where relevant."
+        },
+        {
+          "letter": "B",
+          "text": "Remove the procedures from CLAUDE.md into individual skills under .claude/skills/, keeping only project-wide conventions."
+        },
+        {
+          "letter": "C",
+          "text": "Compress each of the 15 procedures down to a single sentence in CLAUDE.md, keeping the file short while retaining all 15 procedures in the loaded context."
+        },
+        {
+          "letter": "D",
+          "text": "Add a ## Procedures section at the end of CLAUDE.md with a preamble instructing Claude to apply those procedures only when a task explicitly calls for one."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 34,
+      "question": "A fintech monorepo has three domains: payments, identity, and reporting. The payments and identity rules are compliance requirements that must hold no matter which directory an engineer is working in. The reporting rules only govern how files under reporting/ are written and are noise everywhere else. Each sub- team maintains its own file. How should the rules be organized?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Leave payments and identity un-scoped so they load at launch, and give reporting a paths: glob for its own directory."
+        },
+        {
+          "letter": "B",
+          "text": "Give all three files a paths: glob covering their own directories, so each set loads whenever a matching file is touched."
+        },
+        {
+          "letter": "C",
+          "text": "Leave all three un-scoped so every rule loads at launch, keeping the compliance requirements and the reporting conventions together."
+        },
+        {
+          "letter": "D",
+          "text": "Put payments and identity in the root CLAUDE.md, and give reporting its own CLAUDE.md inside the reporting/ directory."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 35,
+      "question": "A platform team has strict conventions for test files: every * .test.tsx file must use a specific mocking helper and a required describe-block structure. These test files are scattered across dozens of feature directories throughout the codebase, and the conventions are irrelevant when editing anything else. The team wants the rules to apply automatically wherever such a file is edited, without adding their weight to the context on unrelated work. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Add the conventions to the root CLAUDE.md, where they load in every session and are on hand whenever a test file is opened."
+        },
+        {
+          "letter": "B",
+          "text": "Place a CLAUDE.md in every directory that holds test files today, so the mocking helper, the describe structure, and the naming rules load there."
+        },
+        {
+          "letter": "C",
+          "text": "Create a rule file under .claude/rules/ whose paths: frontmatter globs */.test.tsx, so it loads on any matching file."
+        },
+        {
+          "letter": "D",
+          "text": "Write the conventions as a skill and instruct engineers to invoke that skill before beginning any piece of work that touches the project's test files."
+        }
+      ],
+      "correct": "C"
+    },
+    {
+      "number": 36,
+      "question": "A senior engineer must migrate a legacy REST API to GraphQL. The work touches 35 resolver files, requires a new schema, modifies 8 integration tests, and changes the API gateway configuration. Several viable schema- design approaches exist and the choice has long-term consequences. The engineer opens Claude Code and types: \"Migrate everything to GraphQL.\" What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Proceed straight to writing code, since a REST-to-GraphQL migration is a well-established pattern that the model can apply unaided."
+        },
+        {
+          "letter": "B",
+          "text": "Use plan mode so that Claude produces a detailed migration plan covering all the affected files and the architectural choices before any code gets written."
+        },
+        {
+          "letter": "C",
+          "text": "Work through the migration file by file, beginning with the schema, and let Claude adapt its approach as each file reveals more about the codebase."
+        },
+        {
+          "letter": "D",
+          "text": "Run the whole migration non-interactively in a single pass with the -p flag, then review the complete resulting diff as one unit of work."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 37,
+      "question": "A developer must add input validation to a single utility function in utils/sanitize.py. The function currently accepts raw strings; the requirement is to strip leading and trailing whitespace and reject empty strings. The function has no external dependencies and is already covered by unit tests. A junior engineer proposes simply making the edit and letting the existing tests verify it. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Proceed directly with the edit, relying on the function's existing unit tests to verify the new validation behaves correctly."
+        },
+        {
+          "letter": "B",
+          "text": "Enter plan mode to map the function's call sites, its test coverage, and its downstream consumers before touching the code."
+        },
+        {
+          "letter": "C",
+          "text": "Encapsulate the validation logic in a skill first, so that the same rule can be applied consistently the next time a function needs validation."
+        },
+        {
+          "letter": "D",
+          "text": "Store the validation rules with /memory before beginning, so that the requirement persists in context for the remainder of the session."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 38,
+      "question": "A CI job must run Claude Code with no terminal and no human present, and a later step needs to parse the findings. Which invocation is correct?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "claude -p \"review this PR\" --output-format json, which runs and exits without a session."
+        },
+        {
+          "letter": "B",
+          "text": "claude \"review this PR\" --output-format json, relying on CI detection to skip the prompt."
+        },
+        {
+          "letter": "C",
+          "text": "claude --batch \"review this PR\" --output-format json, using the documented batch flag."
+        },
+        {
+          "letter": "D",
+          "text": "CLAUDE_HEADLESS=1 claude \"review this PR\" --output-format json set in the job env."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 39,
+      "question": "A developer has spent six hours implementing a complex caching layer in a single Claude Code session. The implementation is complete and she wants a thorough review for bugs, edge cases, and design flaws. She asks Claude, in that same session, to review the code. The review finds no significant issues and rates the implementation excellent. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Keep the same-session review, since that session already holds every design decision along with the full rationale behind each one."
+        },
+        {
+          "letter": "B",
+          "text": "Run the existing test suite and treat a clean pass as confirmation that the same-session review can be relied upon for this implementation."
+        },
+        {
+          "letter": "C",
+          "text": "Dispatch a separate Claude Code instance that carries no prior context, and have it review the caching layer from scratch."
+        },
+        {
+          "letter": "D",
+          "text": "Have a second human engineer re-review only the areas Claude itself flagged as potentially problematic, focusing scarce review effort where risk was identified."
+        }
+      ],
+      "correct": "C"
+    },
+    {
+      "number": 40,
+      "question": "A team builds a resume screener that flags candidates as \"qualified\" or \"unqualified.\" The current prompt says: \"Review the resume and decide if the candidate is a good fit.\" Results are inconsistent - candidates with materially similar backgrounds are flagged differently depending on subtle wording in their resumes. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Add labeled examples in volume, and keep adding them until the model converges on the intended screening pattern."
+        },
+        {
+          "letter": "B",
+          "text": "Replace the vague instruction with explicit measurable criteria, such as a years-in-role threshold plus at least one named credential."
+        },
+        {
+          "letter": "C",
+          "text": "Route every resume through two independent screening calls and flag a candidate only when both explicitly agree on the verdict."
+        },
+        {
+          "letter": "D",
+          "text": "Add a post-processing step that assigns one of the two labels at random whenever the model's own stated confidence falls below a chosen threshold."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 41,
+      "question": "An AI pipeline classifies support tickets into five categories: Billing, Technical, Shipping, Account, and Feedback. Overall precision is acceptable, but the Feedback category has a 41% false positive rate - tickets belonging to other categories are frequently mislabeled as Feedback. Reviewers have begun distrusting the pipeline's output across all five categories. The team's first instinct is to rewrite the entire prompt. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Rewrite the classification prompt from scratch, redrawing all five category boundaries - Billing, Technical, Shipping, Account, and Feedback - in one pass."
+        },
+        {
+          "letter": "B",
+          "text": "Iterate on the Feedback definition alone against a held-out set, tracking only that one category's precision before folding it back into the prompt."
+        },
+        {
+          "letter": "C",
+          "text": "Remove the Feedback category permanently and route those tickets to a manual queue, eliminating the false positive source and restoring trust in the other four."
+        },
+        {
+          "letter": "D",
+          "text": "Add three few-shot labeled Feedback examples to the existing prompt while leaving the category definition exactly as it stands today."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 42,
+      "question": "A security team wants Claude to triage vulnerability reports by severity: Critical, High, Medium, or Low. The prompt describes each level in two or three sentences of prose - for instance, \"Critical means the vulnerability could allow full system compromise.\" Engineers find the model assigns severity inconsistently across similar vulnerability types, and struggles most to distinguish High from Critical. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Expand the prose definitions substantially, adding more detail and qualifying language to each level so the distinctions between adjacent levels are described precisely."
+        },
+        {
+          "letter": "B",
+          "text": "Remove the severity field and have the model write a free-text risk narrative instead, letting human reviewers assign the level themselves from that narrative."
+        },
+        {
+          "letter": "C",
+          "text": "Add a disclaimer to the output instructing reviewers to override the model's severity judgment whenever it conflicts with their own expert assessment of the report."
+        },
+        {
+          "letter": "D",
+          "text": "Supplement the prose with concrete code or payload examples per level, so adjacent severities are separated by demonstrated cases."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 43,
+      "question": "A content moderation team classifies social media posts as Safe, Sensitive, or Violating. They have written a detailed 600-word policy document explaining each label. Despite the thorough instructions, human reviewers and the model disagree on borderline Sensitive-versus-Safe cases at a rate of 28%. A senior reviewer suggests adding three labeled examples per category to the prompt. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Keep the 600-word policy as the sole instruction and expand it further, since a complete written specification generalizes to novel posts best."
+        },
+        {
+          "letter": "B",
+          "text": "Replace the policy document with the nine labeled examples and nothing else, so the boundaries come from demonstrated cases rather than prose."
+        },
+        {
+          "letter": "C",
+          "text": "Add the three labeled examples per category alongside the existing 600-word policy document, keeping both in the prompt."
+        },
+        {
+          "letter": "D",
+          "text": "Add examples only for the Violating category, since that is the highest-risk label and the one where any single misclassification carries the greatest cost."
+        }
+      ],
+      "correct": "C"
+    },
+    {
+      "number": 44,
+      "question": "A legal team uses Claude to classify contract clauses as Indemnification, Limitation of Liability, Termination, or Other. They provide four labeled examples - one per category - but the model still produces inconsistent classifications on complex multi-clause paragraphs. A teammate points out that the examples show only the raw clause text and the correct label, with no explanation of why each label was chosen. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Double the example count to eight, two per category, while keeping the existing input-and-label format so the model sees broader coverage."
+        },
+        {
+          "letter": "B",
+          "text": "Remove the four examples and replace them with a substantially longer written definition of each of the four clause categories."
+        },
+        {
+          "letter": "C",
+          "text": "Rewrite each example to include its own reasoning chain, showing why the chosen label beats the most plausible alternative for that clause."
+        },
+        {
+          "letter": "D",
+          "text": "Instruct the model to output only the label it is most confident in, and to skip any clause that it finds genuinely ambiguous."
+        }
+      ],
+      "correct": "C"
+    },
+    {
+      "number": 45,
+      "question": "An engineer builds a pipeline that extracts structured data from patient intake forms: name, date of birth, insurance ID, and primary complaint. The current prompt asks Claude to return a JSON object. In production the pipeline crashes several times a week on malformed JSON - missing quotes, trailing commas, and unescaped characters inside free-text fields. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Add a retry loop that re-prompts Claude with an instruction to fix its JSON, repeating until the response parses or a retry ceiling is reached."
+        },
+        {
+          "letter": "B",
+          "text": "Replace free-form JSON generation with a tool call whose input_schema declares the fields for Claude to populate."
+        },
+        {
+          "letter": "C",
+          "text": "Post-process every response with a regex cleaner that repairs the common faults - unquoted keys, trailing commas, unescaped characters - before parsing."
+        },
+        {
+          "letter": "D",
+          "text": "Instruct the model to reply with nothing but a JSON object, add a stop sequence at the closing brace, and reject any trailing content."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 46,
+      "question": "A team migrates their extraction pipeline to tool use with a strict JSON schema. After migration, syntax errors drop to zero. During QA, however, an analyst finds the model is populating policy_start_date with values taken from the policy_end_date column, and occasionally inventing a broker_id that appears nowhere in the document. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Retain free-form JSON generation, since these semantic faults surfaced only once the strict schema migration was introduced."
+        },
+        {
+          "letter": "B",
+          "text": "Mark more fields as required in the schema so the model is compelled to populate every one of them, removing the empty-field pressure that leads it to invent values."
+        },
+        {
+          "letter": "C",
+          "text": "Replace schema-only trust with field-level source instructions, a copy-only extraction rule, and nullable not-found fields."
+        },
+        {
+          "letter": "D",
+          "text": "Accept the faults as an inherent limitation of language models, and add a mandatory human review of every field, every record, before any downstream write."
+        }
+      ],
+      "correct": "C"
+    },
+    {
+      "number": 47,
+      "question": "An orchestration layer sends Claude a prompt with three tools available: search_database, generate_report, and send_notification. This workflow step must not come back as a plain text reply - some tool has to be invoked - but which of the three fits is genuinely the model's call. Which tool_choice value is correct?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Set tool_choice to \"auto\", and add a system prompt line requiring a tool call on every turn."
+        },
+        {
+          "letter": "B",
+          "text": "Set tool_choice to \"any\", which leaves the selection among the three available tools to the model."
+        },
+        {
+          "letter": "C",
+          "text": "Set tool_choice to force search_database and let the prompt steer the model elsewhere when needed."
+        },
+        {
+          "letter": "D",
+          "text": "Set tool_choice to \"auto\" and add a no_op tool for the model to select when it would otherwisen prose."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 48,
+      "question": "A team extracts structured data from vendor contracts. The schema includes a payment_terms field, currently marked required with type string. In roughly 30% of contracts payment terms are not stated at all, and in production the model fabricates plausible values like \"Net 30\" for those documents. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Drop the required constraint, making the field nullable, and instruct the model to return null when the terms are absent."
+        },
+        {
+          "letter": "B",
+          "text": "Leave the field required and add a clear \"do not guess\" instruction to the system prompt, telling the model not to invent absent terms."
+        },
+        {
+          "letter": "C",
+          "text": "Add a post-processing rule that deletes any payment_terms value equal to \"Net 30\", the value monitoring flagged."
+        },
+        {
+          "letter": "D",
+          "text": "Remove payment_terms from the schema altogether, since a field absent from a third of the corpus is not reliable enough to extract automatically."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 49,
+      "question": "A pipeline extracts lease agreement data into a structured schema. One attempt returns lease_term_months: \"twenty-four\" - a string where an integer is required - and the downstream database write fails. The engineer is implementing a validation-retry loop; the current retry prompt says only: \"Your previous response was invalid. Please try again.\" What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Include the original lease document, the failed extraction output, and the exact validation error text in the retry prompt so the model can correct it."
+        },
+        {
+          "letter": "B",
+          "text": "Keep the generic retry message, since a second pass over the same lease document usually returns a valid integer value."
+        },
+        {
+          "letter": "C",
+          "text": "Widen the schema to accept a string or an integer for lease_term_months, clearing the validation error and leaving a downstream converter to normalize it."
+        },
+        {
+          "letter": "D",
+          "text": "Skip the retry, routing the record straight to a human reviewer on first failure, since a model that mistyped a field will not correct itself."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 50,
+      "question": "A data engineering team must process 500,000 employee performance reviews overnight to generate structured summaries for an HR dashboard. Each review is independent and requires a single model call with no tool loop. Reviews are uploaded at 10 PM and the dashboard is first read by managers at 8 AM. A junior engineer proposes the synchronous Messages API in a parallel thread pool. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Keep the synchronous API and spread the work across a parallel thread pool, since many workers clear a large batch fastest."
+        },
+        {
+          "letter": "B",
+          "text": "Use the synchronous API sequentially, because issuing 500,000 requests in parallel would trip the rate limits."
+        },
+        {
+          "letter": "C",
+          "text": "Use streaming so each review's summary can be written to the dashboard incrementally as tokens arrive, rather than waiting for whole responses."
+        },
+        {
+          "letter": "D",
+          "text": "Use the Batch API, since the work is latency-tolerant and high-volume and ten hours far exceeds the typical batch turnaround of well under an hour."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 51,
+      "question": "A financial trading platform uses Claude to classify incoming wire transfer instructions as Approved, Flagged for Review, or Rejected. The classification must complete within 800 milliseconds so the result reaches a compliance officer before the transfer window closes. Reviewing a cost report, one engineer proposes leaving this workflow exactly where it is on the synchronous API and finding savings elsewhere. Which approach should the team adopt?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Keep the workflow on the synchronous API but drop to a smaller model, recovering most of the cost saving the developer wants."
+        },
+        {
+          "letter": "B",
+          "text": "Move to the Batch API and accept the latency trade-off, since the cost reduction across a high daily volume outweighs any single delay."
+        },
+        {
+          "letter": "C",
+          "text": "Keep the workflow on the synchronous API, which is what a blocking request under a hard 800- millisecond budget requires."
+        },
+        {
+          "letter": "D",
+          "text": "Move to the Batch API and cache classification results so that subsequent identical transfer instructions are returned instantly from that cache."
+        }
+      ],
+      "correct": "C"
+    },
+    {
+      "number": 52,
+      "question": "A cloud support engineer builds an assistant for multi-day server migration cases. Each case accumulates configuration snapshots, error logs, and customer approvals over several days. As migrations progress the context window fills and the assistant begins losing early configuration details, causing it to suggest steps that contradict decisions made on day one. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Move the configuration snapshots into an external case file and give the assistant a read_case_file tool to fetch them on demand."
+        },
+        {
+          "letter": "B",
+          "text": "Summarize the whole conversation into a single paragraph at the 80% context threshold and replace the prior messages."
+        },
+        {
+          "letter": "C",
+          "text": "Keep each case's persistent configuration and approved decisions in a dedicated block prepended to every prompt, refreshed but intact."
+        },
+        {
+          "letter": "D",
+          "text": "Ask the customer to re-paste the original server configuration - instance sizes, network layout, storage tiers - at the start of each new session."
+        }
+      ],
+      "correct": "C"
+    },
+    {
+      "number": 53,
+      "question": "A legal tech startup uses Claude to answer questions about vendor contracts of 60 to 80 pages. The prompt currently opens with the question and the answering instructions and appends the contract text underneath them. Accuracy on clause-dependent questions is poor, and the model tends to paraphrase a clause loosely rather than quote the governing text, even though the whole contract fits inside the context window with room to spare. What is the correct fix?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Split each contract across several requests, sending one section per call, and merge the answers together afterwards."
+        },
+        {
+          "letter": "B",
+          "text": "Pre-filter each contract down to the 20 most relevant pages before sending it, so the material the model must attend to is a fraction of its size."
+        },
+        {
+          "letter": "C",
+          "text": "Run each query twice and average the model's stated confidence across the two responses, using agreement between runs as a reliability signal."
+        },
+        {
+          "letter": "D",
+          "text": "Move the contract above the question and the instructions, and require the model to quote the governing clauses before it answers."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 54,
+      "question": "An AI customer service agent handles e-commerce order issues. A customer whose package was delayed writes: \"I've been patient, but I really just want to speak to a real person right now - please transfer me.\" The agent's escalation policy states that human handoff is available but should only trigger after two resolution attempts. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Honor the explicit request immediately and transfer the conversation to a live human agent, with no prior attempts."
+        },
+        {
+          "letter": "B",
+          "text": "Acknowledge the request and offer one further automated resolution before escalating, which explicitly respects the policy."
+        },
+        {
+          "letter": "C",
+          "text": "Have the agent finish both resolution attempts before offering handoff, since the policy sets that threshold explicitly and consistency matters."
+        },
+        {
+          "letter": "D",
+          "text": "Log the message as a strong negative sentiment signal and raise the case's urgency score while continuing the automated flow toward a resolution."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 55,
+      "question": "A benefits administration AI helps employees navigate leave policies. An employee asks whether they qualify for paid caregiver leave to care for a domestic partner with a chronic illness. The AI searches its policy knowledge base and finds the policy explicitly covers spouses and parents only; there is no documented rule for domestic partners either way. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Respond that the employee is not eligible, since the policy explicitly lists spouses and parents only and the rule should apply as written."
+        },
+        {
+          "letter": "B",
+          "text": "Respond that the employee is eligible, since the policy's intent is explicitly to support employees with caregiving duties."
+        },
+        {
+          "letter": "C",
+          "text": "Ask the employee to resubmit the question with supporting documentation, then retry the automated resolution."
+        },
+        {
+          "letter": "D",
+          "text": "Escalate to a human HR specialist, stating explicitly that the documented policy does not cover this case at all."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 56,
+      "question": "An agent's escalation policy lists the conditions that hand a conversation to a human. Which of these is a valid trigger on its own?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "The customer explicitly asks to be transferred to a human agent."
+        },
+        {
+          "letter": "B",
+          "text": "The agent's sentiment analysis scores the message as highly negative, at any point."
+        },
+        {
+          "letter": "C",
+          "text": "The agent's self-reported confidence in its answer falls below a threshold."
+        },
+        {
+          "letter": "D",
+          "text": "The customer's message contains language that the agent classifies as frustrated."
+        }
+      ],
+      "correct": "A"
+    },
+    {
+      "number": 57,
+      "question": "A patient intake AI collects information before clinic appointments. Early in a session a patient says: \"I'm really worried about these symptoms - the wait is stressing me out.\" The AI detects negative sentiment. Later in the same session, after the AI explains the pre-appointment process, the patient says: \"I appreciate the info, but honestly I'd feel better talking to a nurse before my appointment.\" What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Escalate at the first distress signal, treating explicit worry about symptoms as a clinical indicator that outranks the intake."
+        },
+        {
+          "letter": "B",
+          "text": "Log both messages as sentiment signals for a clinician to review once the pre-appointment intake session has been completed."
+        },
+        {
+          "letter": "C",
+          "text": "Ask the patient to confirm the nurse request a second time, so clinical capacity goes only to deliberate requests."
+        },
+        {
+          "letter": "D",
+          "text": "Continue the automated intake at the first signal with reassurance and clear next steps, then escalate at the second message."
+        }
+      ],
+      "correct": "D"
+    },
+    {
+      "number": 58,
+      "question": "A tool reaches its data source successfully and finds no matching records. What should it return to the agent?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "An error result, so the agent knows the lookup produced nothing usable."
+        },
+        {
+          "letter": "B",
+          "text": "A successful result whose payload is empty, with no error flag set."
+        },
+        {
+          "letter": "C",
+          "text": "A successful result with isError set, marking the empty payload explicitly."
+        },
+        {
+          "letter": "D",
+          "text": "An error result the agent should retry, in case the records appear shortly."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 59,
+      "question": "A recruitment AI searches an internal candidate database when a hiring manager requests a shortlist for a senior engineering role. For one search the system returns zero results and the AI reports: \"No candidates match your criteria.\" A developer reviewing the logs finds the database connection timed out - the query never executed. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Retry the query automatically and return results if it succeeds, otherwise report no candidates found as an explicit answer."
+        },
+        {
+          "letter": "B",
+          "text": "Surface the connection timeout to the caller as an explicit system error, rather than reporting the outage as an empty result set."
+        },
+        {
+          "letter": "C",
+          "text": "Automatically broaden the search criteria until at least one candidate returns, so no explicit search comes back empty-handed."
+        },
+        {
+          "letter": "D",
+          "text": "Cache the last successful result for each query shape and return it as an approximation whenever the candidate database is unreachable."
+        }
+      ],
+      "correct": "B"
+    },
+    {
+      "number": 60,
+      "question": "An AI system automates invoice processing for an accounts payable team. In evaluation it scores 94% overall accuracy across 500 invoices. Satisfied, the team plans to deploy immediately. A senior engineer asks whether the accuracy breakdown was reviewed by vendor and invoice type before sign-off. What should the engineer do?",
+      "options": [
+        {
+          "letter": "A",
+          "text": "Expand the evaluation to 2,000 invoices and re-measure the aggregate, stratified only by sample size, to confirm 94% is stable."
+        },
+        {
+          "letter": "B",
+          "text": "Ship behind a shadow deployment that scores every invoice without acting, and compare its output against the AP team's decisions for a month."
+        },
+        {
+          "letter": "C",
+          "text": "Run stratified validation by vendor, by invoice type, and by value tier before deploying, since a strong aggregate can conceal segment failures."
+        },
+        {
+          "letter": "D",
+          "text": "Deploy with a human-in-the-loop review of the 6% error rate, and remove that step once the aggregate explicitly reaches 97%."
+        }
+      ],
+      "correct": "C"
+    }
+  ]
+}
