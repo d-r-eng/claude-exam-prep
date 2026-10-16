@@ -40,7 +40,15 @@ STATIC = {
     "/practice.js": WEB_DIR / "practice.js",
     "/markdown.js": WEB_DIR / "markdown.js",
     "/app.css": WEB_DIR / "app.css",
+    "/favicon.svg": WEB_DIR / "favicon.svg",
+    "/favicon.ico": WEB_DIR / "favicon.ico",
+    "/apple-touch-icon.png": WEB_DIR / "apple-touch-icon.png",
+    "/icon-192.png": WEB_DIR / "icon-192.png",
+    "/icon-512.png": WEB_DIR / "icon-512.png",
+    "/manifest.webmanifest": WEB_DIR / "manifest.webmanifest",
 }
+mimetypes.add_type("application/manifest+json", ".webmanifest")
+mimetypes.add_type("image/x-icon", ".ico")
 MAX_BODY = 16 * 1024
 SESSION_RE = re.compile(r"^/api/sessions/([0-9a-f-]{36})(?:/(answer|reply|retry))?$")
 

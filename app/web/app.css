@@ -14,6 +14,9 @@ button { font: inherit; color: inherit; }
   padding: 14px clamp(16px, 3vw, 32px); border-bottom: 1px solid var(--kiln-line);
   background: var(--kiln-paper); position: sticky; top: 0; z-index: 5; }
 .brand { display: flex; align-items: center; gap: 10px; }
+.brand-tile { fill: #201C17; }
+:root[data-theme="dark"] .brand-tile { fill: #2E2924; stroke: #4A423A; stroke-width: 1.5; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .brand-tile { fill: #2E2924; stroke: #4A423A; stroke-width: 1.5; } }
 .brand-name { font-family: var(--kiln-font-display); font-size: 21px; }
 .tabs { display: flex; gap: 4px; padding: 4px; border-radius: var(--kiln-radius); background: var(--kiln-sunk); }
 .tabs button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent;
