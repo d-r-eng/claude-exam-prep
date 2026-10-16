@@ -302,7 +302,7 @@ The project has a visual identity for any web front end, dashboard or exported r
 
 **Rules:** right and wrong never rely on colour alone. Correct gets a check mark and a solid edge, a wrong pick gets a cross and a dashed edge. Text meets 4.5:1 contrast, and touch targets are at least 44 px.
 
-**Logo:** the pass line, a score climbing through the dashed 720 line on an ink tile, the same picture as the Stats chart. Files are in [`assets/logo/`](assets/logo/): `logo-mark.svg` for light backgrounds, `logo-mark-dark.svg` for dark ones, the two README headers (their text is converted to outlines so they look the same everywhere), and a 512 px PNG. The app's tab icon, `favicon.ico`, touch icon and install icons are in `app/web/`.
+**Logo:** the pass line, a score climbing through the dashed 720 line on an ink tile and running on past it in a dashed tail, the same picture as the Stats chart. Files are in [`assets/logo/`](assets/logo/): `logo-mark.svg` for light backgrounds, `logo-mark-dark.svg` for dark ones, the two README headers (their text is converted to outlines so they look the same everywhere), and a 512 px PNG. The app's tab icon, `favicon.ico`, touch icon and install icons are in `app/web/`.
 
 All tokens, light and dark, are in [`design/tokens.css`](design/tokens.css):
 
