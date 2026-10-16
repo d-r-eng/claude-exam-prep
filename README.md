@@ -1,6 +1,6 @@
 # Claude Exam Prep
 
-**Scenario-based practice for both Claude Certified Architect exams, built as Claude Code commands.**
+**Scenario-based practice for both Claude Certified Architect exams, built as a stand alone [app](#the-app-practice-and-stats), or Claude Code commands.**
 Claude writes the questions, grades your answers, names the trap you fell for, and keeps a local record so every session aims at what you're getting wrong.
 
 | | Foundations (CCAR-F) | Professional (CCAR-P) |
@@ -16,8 +16,8 @@ Claude writes the questions, grades your answers, names the trap you fell for, a
 
 - [Quick start](#quick-start)
 - [Commands and modes](#commands-and-modes)
-- [How a session works](#how-a-session-works)
 - [The app: practice and stats](#the-app-practice-and-stats)
+- [How a session works](#how-a-session-works)
 - [Tracking your progress](#tracking-your-progress)
 - [Retake mode: score-report weighting](#retake-mode-score-report-weighting-fexam)
 - [Exam coverage](#exam-coverage)
@@ -31,6 +31,8 @@ Claude writes the questions, grades your answers, names the trap you fell for, a
 ---
 
 ## Quick start
+
+### Claude Code commands:
 
 **You need:** [Claude Code](https://claude.ai/code) (CLI, desktop app or IDE extension) and `python3` on your PATH. The commands use Python for every score and percentage, so the numbers are never computed in Claude's head.
 
@@ -75,25 +77,6 @@ After each answer (every mode except `exam`) you get:
 
 ---
 
-## How a session works
-
-```mermaid
-flowchart LR
-    A["/fexam hard"] --> B[Pick domain<br/>and count]
-    B --> C[Read history<br/>+ score report]
-    C --> D[Write workspace.md<br/>watch list]
-    D --> E[Question loop<br/>one at a time]
-    E --> F[Final score<br/>1000-pt scale]
-    F --> G[Append to<br/>*-performance.json]
-    G -.next session.-> C
-```
-
-- **Before Question 1**, Claude reads your history and writes `workspace.md`: the session plan, subtopics you're below 70% on, and the traps you keep choosing. If anything is weak, you'll see a short **Watch:** line too.
-- **During the session**, questions come one at a time, labelled with number and domain (e.g. *Question 3/15 — Domain 1*).
-- **At the end** you get your score, a 1000-point weighted domain table with PASS/FAIL against 720 (when you practised all domains), the questions you missed with their traps, and an offer to re-drill. The session is then appended to your performance file.
-
----
-
 ## The app: practice and stats
 
 A local web app in the Kiln design. **Practice** runs your real `/fexam` and `/pexam` commands with clickable screens, and **Stats** shows your whole history.
@@ -126,6 +109,24 @@ Stats doesn't call Claude. It reads your files fresh on every load, using the sa
 ```bash
 python3 -m unittest discover -s app -p "test_*.py"    # stats + command-driver tests (stub claude, no usage)
 ```
+---
+
+## How a session works
+
+```mermaid
+flowchart LR
+    A["/fexam hard"] --> B[Pick domain<br/>and count]
+    B --> C[Read history<br/>+ score report]
+    C --> D[Write workspace.md<br/>watch list]
+    D --> E[Question loop<br/>one at a time]
+    E --> F[Final score<br/>1000-pt scale]
+    F --> G[Append to<br/>*-performance.json]
+    G -.next session.-> C
+```
+
+- **Before Question 1**, Claude reads your history and writes `workspace.md`: the session plan, subtopics you're below 70% on, and the traps you keep choosing. If anything is weak, you'll see a short **Watch:** line too.
+- **During the session**, questions come one at a time, labelled with number and domain (e.g. *Question 3/15 — Domain 1*).
+- **At the end** you get your score, a 1000-point weighted domain table with PASS/FAIL against 720 (when you practised all domains), the questions you missed with their traps, and an offer to re-drill. The session is then appended to your performance file.
 
 ---
 
