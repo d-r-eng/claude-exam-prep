@@ -1,7 +1,7 @@
 ---
 name: pexam
 description: Practice for the Claude Certified Architect – Professional (CCAR-P) exam across all 7 domains. Tracks performance over time and surfaces weak subtopics and recurring distractor traps.
-argument-hint: "easy | medium | hard | absurd | exam | stats"
+argument-hint: "easy | medium | hard | absurd | stats"
 ---
 
 # Claude Certified Architect – Professional (CCAR-P)
@@ -48,7 +48,7 @@ argument-hint: "easy | medium | hard | absurd | exam | stats"
 
 The user selected difficulty: **$ARGUMENTS**
 
-Only `easy`, `medium`, `hard`, `absurd`, `exam`, or `stats` are valid. If `$ARGUMENTS` is missing or not one of those six, stop and ask: "Please specify a difficulty level: easy, medium, hard, absurd, exam, or stats."
+Only `easy`, `medium`, `hard`, `absurd`, or `stats` are valid. If `$ARGUMENTS` is missing or not one of those five, stop and ask: "Please specify a difficulty level: easy, medium, hard, absurd, or stats."
 
 | Level | What it means |
 |---|---|
@@ -56,12 +56,30 @@ Only `easy`, `medium`, `hard`, `absurd`, `exam`, or `stats` are valid. If `$ARGU
 | **medium** | Single architectural decision in a realistic scenario |
 | **hard** | Multiple competing tradeoffs; all options are defensible but one is strictly correct |
 | **absurd** | Maximum deception — every option is superficially plausible; at least one distractor per question exploits a known Professional-exam trap; requires precise architectural judgment to survive |
-| **exam** | Production-style scenarios, silent scoring — no feedback until all questions complete |
 | **stats** | Performance review — no questions. Reads `pexam-performance.json` and shows subtopic accuracy, recurring tricks, and weak-area recommendations. |
 
 Apply this level consistently to every question generated in the session.
 
-### Exam mode rules (applies only when `$ARGUMENTS` is `exam`)
+Difficulty governs question construction only. Feedback cadence is governed by **Mode** (instruction vs. exam), a completely separate axis selected as its own step during session start — see Mode below. Any difficulty can run in either mode.
+
+### Absurd difficulty rules (applies only when `$ARGUMENTS` is `absurd`, regardless of mode)
+
+- **Question construction:** every option (A, B, C, D) must be defensible at first glance. At least one distractor per question must come from the distractor bank's hard/absurd patterns. In addition to the multi-tradeoff requirement.
+- The correct answer must require precise architectural judgment, not just knowing a general principle.
+- Whether feedback is shown after each answer or held until the end is decided by Mode, not by this difficulty level.
+
+---
+
+## Mode
+
+Mode is a separate axis from difficulty and is **not** part of `$ARGUMENTS`. It's selected as its own step during session start (see Session Format) and defaults to `instruction` if the user doesn't specify otherwise. Every difficulty level above can run in either mode.
+
+| Mode | What it means |
+|---|---|
+| **instruction** (default) | Feedback shown after every answer: correct/incorrect, why the correct answer is right, why each distractor is wrong. |
+| **exam** | Production-style simulation — silent scoring. No feedback after each answer; score and full breakdown shown only at the end. |
+
+### Exam mode rules (applies only when the session's mode is `exam`)
 
 - After each answer: respond **only** with the next question. No feedback until the session ends.
 - At the end, show:
@@ -69,12 +87,6 @@ Apply this level consistently to every question generated in the session.
   2. Per-question breakdown: question, user's answer, correct answer, 2–3 sentence explanation
   3. Weak-domain summary, recommended study areas, and offer to re-drill
 - If the user asks whether they got a question right mid-session: "I'll reveal all results at the end — keep going!"
-
-### Absurd mode rules (applies only when `$ARGUMENTS` is `absurd`)
-
-- Same feedback cadence as `hard`: show correct/incorrect after each answer, explain why, analyse each distractor.
-- **Question construction:** every option (A, B, C, D) must be defensible at first glance. At least one distractor per question must come from the distractor bank's hard/absurd/exam patterns. In addition to the multi-tradeoff requirement.
-- The correct answer must require precise architectural judgment, not just knowing a general principle.
 
 ---
 
@@ -85,7 +97,7 @@ Apply this level consistently to every question generated in the session.
 3. Show each of the following sections:
 
 **Session history (most recent 5)**
-Tabular: date | difficulty | domains | score/total | %. Sorted newest first.
+Tabular: date | difficulty | mode | domains | score/total | %. Sorted newest first.
 
 **Subtopic accuracy (≥ 2 attempts only)**
 Group all `questions` entries across all sessions by `subtopic`. For each: subtopic ID and label, correct/total, %. Flag any below 70% with ⚠️. Sort ascending by accuracy so the weakest are at the top.
@@ -127,11 +139,12 @@ Never output a computed number without running it through `python3` first.
 
 1. Greet the user in their language
 2. Confirm the difficulty level from `$ARGUMENTS`
-   - If `exam`: also say "**Exam mode active — no feedback until all questions are complete.**"
-3. Ask: which domain or all domains?
-4. Ask how many questions they want (default: 15)
-5. Read `pexam-performance.json` if it exists. Write `workspace.md` (see Session Logging). If any subtopics have accuracy < 70% across ≥ 2 attempts, show a brief callout before Question 1: "**Watch:** [subtopic label] ([X]%) · [subtopic label] ([X]%)" — use `python3` for all percentages.
-6. Begin immediately — no teaching upfront
+3. Ask which mode: **"Instruction mode (feedback after every question) or exam mode (silent scoring, feedback only at the end)?"** Default to `instruction` if the user doesn't specify or gives an ambiguous answer.
+   - If `exam` is selected: also say "**Exam mode active — no feedback until all questions are complete.**"
+4. Ask: which domain or all domains?
+5. Ask how many questions they want (default: 15)
+6. Read `pexam-performance.json` if it exists. Write `workspace.md` (see Session Logging). If any subtopics have accuracy < 70% across ≥ 2 attempts, show a brief callout before Question 1: "**Watch:** [subtopic label] ([X]%) · [subtopic label] ([X]%)" — use `python3` for all percentages.
+7. Begin immediately — no teaching upfront
 
 ### Question Format
 
@@ -142,14 +155,14 @@ Never output a computed number without running it through `python3` first.
 - Wait for the user to answer before showing the next question
 - Show question number and domain: e.g., **Question 3/15 — Domain 3**
 
-### After Each Answer (easy / medium / hard / absurd only)
+### After Each Answer (instruction mode only)
 
 Show:
 1. **CORRECT ✅** or **INCORRECT ❌**
 2. **Why the correct answer is right** (2–3 sentences, grounded in the architectural principle)
 3. **Why each wrong answer is wrong** — one sentence per distractor explaining the specific flaw
 
-In **exam** mode, skip this block entirely.
+In **exam** mode, skip this block entirely regardless of difficulty.
 
 ### After All Questions
 
@@ -436,7 +449,114 @@ When generating questions:
    - Skipping the discovery phase and jumping to solution design
    - The technically correct answer that ignores a stated business or latency constraint
 4. **Cover all domains proportionally** over a full session: ~3 D1, ~2 D2, ~3 D3, ~2 D4, ~2 D5, ~2 D6, ~1 D7 per 15 questions
-5. **Match difficulty to `$ARGUMENTS`**: easy = concept recall, medium = single architectural decision, hard/absurd = multiple competing tradeoffs. For `absurd`: every option must be defensible and at least one distractor per question drawn from the bank below. Do not vary within a session.
+5. **Match difficulty to `$ARGUMENTS`**: easy = concept recall, medium = single architectural decision, hard/absurd = multiple competing tradeoffs. For `absurd`: every option must be defensible and at least one distractor per question drawn from the bank below. Do not vary within a session. Mode (instruction/exam) is orthogonal — it changes feedback cadence only, never question construction.
+6. **Validate before outputting** — before presenting each question, verify it passes all three checks:
+   - **Self-contained:** every fact needed to distinguish the correct answer from the distractors is present in the scenario stem. The user must be able to reach the correct answer from what is written, without assuming anything unstated.
+   - **No answer-option drift:** no answer option introduces new information that was not established in the scenario. Distractors must exploit the scenario, not add to it.
+   - **Single unambiguous winner:** exactly one answer is strictly better than the others given only what is written. If two answers are defensible from the scenario as stated, rewrite the scenario to resolve the ambiguity before presenting the question.
+
+---
+
+## Few-Shot Question Examples
+
+Use these as style and framing references when generating questions. Each shows the scenario stem and question only — generate fresh answer options for each session.
+
+**Example 1 — Domain 1 (Solution Design & Architecture)**
+
+A retail company successfully piloted a Claude-powered assistant that helps store managers answer operational questions. Encouraged by the results, leadership wants to expand the solution nationally.
+
+During planning, the team learns that store procedures vary significantly by region, source documents change weekly, and many answers will need citations to satisfy audit requirements. Engineering leadership is concerned about introducing unnecessary complexity because the support team has little experience operating multi-agent systems.
+
+Which factor should most strongly influence the architecture recommendation?
+
+---
+
+**Example 2 — Domain 1 (Solution Design & Architecture)**
+
+**Project:** Procurement Request AI Workflow — Design Phase
+
+**Stakeholder Requirements**
+1. Procurement team: identify missing information, gather supporting documents, recommend next steps
+2. Legal: all final decisions must remain employee-approved
+3. Executives: reduce turnaround time; exploring whether full autonomy could eliminate manual review
+
+**System Analysis**
+- Majority of requests follow a predictable, repeatable process
+- A small percentage require extensive cross-system investigation
+
+What architectural consideration is most important when evaluating the level of agent autonomy to introduce?
+
+---
+
+**Example 3 — Domain 1 / Domain 6 (Solution Design & Architecture / Stakeholder Communication)**
+
+An architecture review board is comparing two proposals for a knowledge-management solution.
+
+The first proposal uses a single Claude-powered workflow with retrieval and structured processing. The second uses several specialized agents responsible for retrieval, synthesis, validation, and quality review.
+
+During discussion, stakeholders reveal that current usage patterns are poorly understood, expected growth projections vary widely, and the organization wants a production deployment within two months. However, leadership also expects the platform to become a strategic capability over time.
+
+Which consideration should carry the greatest weight when selecting between the two designs?
+
+---
+
+**Example 4 — Domain 5 / Domain 1 (Governance, Safety & Risk Management / Solution Design)**
+
+You are reviewing notes from a project meeting:
+
+> **Customer Service Manager:** We want agents to spend less time processing refunds.
+>
+> **AI Engineer:** We can add stronger instructions to the system prompt so Claude refuses unauthorized refund requests.
+>
+> **Security Architect:** Users will eventually find ways to submit unexpected inputs.
+>
+> **Product Manager:** We need a solution that is easy to implement and maintain.
+>
+> **Compliance Lead:** Refund approvals must always follow company policy.
+
+Based on these comments, what should be the primary consideration when deciding how refund authorization should be handled?
+
+---
+
+**Example 5 — Domain 2 / Domain 1 (Claude Models, Prompting & Context Engineering / Solution Design)**
+
+An architecture review board is evaluating three proposals for an AI-powered support platform:
+
+| Proposal | Approach |
+|---|---|
+| A | Use a fast, low-cost model for all requests |
+| B | Use the most capable model for all requests |
+| C | Route simple requests to one model and complex investigations to another |
+
+Additional context:
+- The application receives millions of requests each month
+- Most requests require straightforward classification
+- A small percentage require complex reasoning
+- Leadership is concerned about both cost and response times
+
+The board must recommend a production approach.
+
+What consideration should most strongly influence the recommendation?
+
+---
+
+**Example 6 — Domain 4 / Domain 2 (Evaluation, Testing & Optimization / Claude Models, Prompting & Context Engineering)**
+
+A recently deployed compliance application has generated the following incident summary:
+
+**Symptoms**
+- Response times have increased by 40%
+- Inference costs have doubled
+- User satisfaction scores remain unchanged
+
+**Investigation Findings**
+- Additional policy documents have been added to every request
+- Historical records are now automatically included in all prompts
+- Most users reference only a small portion of the supplied information
+
+Several team members propose upgrading to a more capable Claude model.
+
+As the lead architect, what issue should you evaluate first?
 
 ---
 
@@ -453,9 +573,9 @@ When generating questions:
 | Simple deterministic process proposed as agentic | Use a workflow instead — agentic adds unnecessary complexity | Add a coordinator agent, use multi-agent decomposition, add tool selection |
 | Compliance concern raised post-design | Treat as architectural constraint, redesign if needed | Add a disclaimer to the system prompt, log all outputs, add human review |
 
-### Hard, absurd, and exam only
+### Hard and absurd only
 
-| Situation | Correct answer | Hard/absurd/exam distractors and why they fail |
+| Situation | Correct answer | Hard/absurd distractors and why they fail |
 |---|---|---|
 | Post-migration RAG degradation; embeddings preserved | Index corruption or retrieval pipeline misconfiguration | "Embedding model mismatch" (embeddings were preserved — ruled out by scenario); "Prompt drift during migration" (plausible but retrieval is the likely culprit when embeddings are intact) |
 | RAG returns confident but incorrect answers after a document refresh; latency and model version unchanged | Investigate the retrieval/indexing pipeline — irrelevant or stale chunks are being fed to the model | "Model weights silently changed" (not triggered by a document refresh); "Temperature setting too low" (unaffected by refresh, causes conservative output not hallucinations); "Context window has shrunk" (not triggered by a document refresh); "Prompt caching is serving stale responses" (cache doesn't store retrieved content) |
@@ -502,11 +622,11 @@ Quick-reference if-then rules. When a question matches one of these patterns, ap
 
 Format:
 ```
-# Session Plan — Professional, [difficulty], [domain_filter], [N] questions
+# Session Plan — Professional, [difficulty], [mode], [domain_filter], [N] questions
 Date: [run `date +%Y-%m-%d` via Bash]
 
 ## Focus
-Domain: [user's choice]   Questions: [N]   Difficulty: [level]
+Domain: [user's choice]   Questions: [N]   Difficulty: [level]   Mode: [instruction|exam]
 
 ## Watch List
 [If pexam-performance.json exists and has subtopics with accuracy < 70% across ≥ 2 attempts:]
@@ -537,7 +657,8 @@ After showing the final score, append a session record. Read the existing file w
 ```json
 {
   "date": "YYYY-MM-DD",
-  "difficulty": "easy|medium|hard|absurd|exam",
+  "difficulty": "easy|medium|hard|absurd",
+  "mode": "instruction|exam",
   "domain_filter": "all|D1|D2|D3|D4|D5|D6|D7",
   "score": 11,
   "total": 15,
@@ -566,6 +687,7 @@ After showing the final score, append a session record. Read the existing file w
 - `subtopic`: Use the section codes from the domain content tables (e.g. `"1.2"`, `"3.4"`, `"4.5"`). Every question must have one — assign it when generating the question.
 - `trick`: When the answer was wrong, use a short snake_case label for the cognitive trap. Common labels: `"prefer_complex_over_simple"`, `"add_monitoring_not_remove_permissions"`, `"optimize_before_measuring"`, `"choose_largest_model"`, `"fix_retrieval_with_prompt"`, `"skip_discovery_phase"`, `"ignore_latency_constraint"`, `"human_review_for_all_risks"`, `"treat_overall_accuracy_as_sufficient"`. Use `null` when correct.
 - `chosen`: Always record the letter the user submitted, correct or not.
+- `mode`: Record the mode selected during the session-start step (`"instruction"` or `"exam"`) — independent of `difficulty`.
 - `date`: Run `date +%Y-%m-%d` via Bash — never hard-code.
 
 Use `python3` via Bash for `score` (verify it matches the tally) and for any derived fields in stats mode.

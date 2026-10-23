@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python3 -c *)"
+      "Read(workspace.md)",
+      "Edit(workspace.md)",
+      "Read(fexam-performance.json)",
+      "Edit(fexam-performance.json)",
+      "Read(pexam-performance.json)",
+      "Edit(pexam-performance.json)",
+      "Bash(python3 -c *)",
+      "Bash(date +%Y-%m-%d)"
     ]
   }
 }
