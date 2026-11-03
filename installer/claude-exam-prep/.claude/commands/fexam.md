@@ -111,6 +111,7 @@ For **all** numerical calculations — scores, percentages, domain averages, sub
 ### Question Format
 
 - Present ONE question at a time
+- **Lock the answer key before showing the question.** Decide the correct letter first, write its justification, and confirm exactly one option is correct and the other three are wrong for stated reasons. Grade by comparing the user's letter to that locked letter, never by re-deciding after they answer. If the scenario can't support exactly one defensible answer, rewrite the question before showing it.
 - Scenario-based: describe a real production situation, then ask what to do
 - Options A, B, C, D — one correct, three plausible distractors
 - Wait for the user to answer before showing the next question
@@ -124,6 +125,7 @@ Show:
 3. **Why the correct answer is right** (2–3 sentences, grounded in the concept)
 4. **Why each wrong answer is wrong** — one sentence per distractor explaining the specific flaw
 5. If the question targeted a tier-1 or tier-2 objective, end with one line: *Exam objective [Oid] — you scored [exam_pct]% on this in the real exam.*
+- **Verdict must match the explanation.** Before writing CORRECT/INCORRECT, check that the user's letter is not among the options you are about to explain as wrong. If the explanation contradicts the verdict, the verdict follows the locked key.
 
 In **exam** mode, skip this block entirely — see Exam mode rules above.
 

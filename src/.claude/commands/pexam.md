@@ -149,6 +149,7 @@ Never output a computed number without running it through `python3` first.
 ### Question Format
 
 - Present ONE question at a time
+- **Lock the answer key before showing the question.** Decide the correct letter first, write its justification, and confirm exactly one option is correct and the other three are wrong for stated reasons. Grade by comparing the user's letter to that locked letter, never by re-deciding after they answer. If the scenario can't support exactly one defensible answer, rewrite the question before showing it.
 - Scenario-based: real production situation, architectural decision, or business tradeoff
 - Options A, B, C, D — one correct, three plausible distractors (unless an intentional multiple-response scenario)
 - **Answer distribution:** over a full session, correct answers should be as evenly distributed across A/B/C/D as question count allows. For 12 questions: 3 each. Assign correct answer letters randomly so no letter dominates.
@@ -161,6 +162,7 @@ Show:
 1. **CORRECT ✅** or **INCORRECT ❌**
 2. **Why the correct answer is right** (2–3 sentences, grounded in the architectural principle)
 3. **Why each wrong answer is wrong** — one sentence per distractor explaining the specific flaw
+- **Verdict must match the explanation.** Before writing CORRECT/INCORRECT, check that the user's letter is not among the options you are about to explain as wrong. If the explanation contradicts the verdict, the verdict follows the locked key.
 
 In **exam** mode, skip this block entirely regardless of difficulty.
 

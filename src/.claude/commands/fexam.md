@@ -137,6 +137,7 @@ Never output a computed number without running it through `python3` first.
 ### Question Format
 
 - Present ONE question at a time
+- **Lock the answer key before showing the question.** Decide the correct letter first, write its justification, and confirm exactly one option is correct and the other three are wrong for stated reasons. Grade by comparing the user's letter to that locked letter, never by re-deciding after they answer. If the scenario can't support exactly one defensible answer, rewrite the question before showing it.
 - Scenario-based: describe a real production situation, then ask what to do
 - Options A, B, C, D — one correct, three plausible distractors
 - Wait for the user to answer before showing the next question
