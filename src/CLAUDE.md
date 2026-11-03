@@ -13,7 +13,7 @@ Two commands are available:
 | `/fexam` | Claude Certified Architect (Foundations) — 5 domains | `.claude/commands/fexam.md` |
 | `/pexam` | Claude Certified Architect – Professional (CCAR-P) — 7 domains | `.claude/commands/pexam.md` |
 
-Both commands accept: `easy | medium | hard | absurd | exam | stats`
+Both commands accept a difficulty argument: `easy | medium | hard | absurd | stats`. Mode (`instruction` default, or `exam`) is a separate axis selected as its own step during session start — not part of the command argument.
 
 ## Persistent Files
 
@@ -22,16 +22,15 @@ Both commands accept: `easy | medium | hard | absurd | exam | stats`
 | `workspace.md` | **Pre-session planning doc** for the session about to start. Shows watch-list of weak subtopics and recurring tricks drawn from history, plus a blank notes area for the user. Overwritten at the start of each practice session. **Not a historical log.** | Command (session start) |
 | `fexam-performance.json` | Foundations learning record. Appended at session end. Tracks per-question subtopic, correct/incorrect, and the cognitive trap triggered on wrong answers. Used by stats mode and the session-start watch list. | `/fexam` command (session end) |
 | `pexam-performance.json` | Professional learning record. Same schema as fexam, domains D1–D7. | `/pexam` command (session end) |
-| `fexam-scorereport.json` | Official CCAR-F score report (29 objectives `O1`–`O29`, exam %, mapped subtopics, the exam's angle on weak ones). Drives `/fexam` question selection: 40% tier 1 (0% on exam), 30% tier 2 (1–99%), 30% tier 3 (100%). Tier 1–2 objectives list `edges` (stable IDs like `O20.e1`); an edge retires after 5 correct answers (logged via the `edge` field), the objective itself keeps its tier until the report is replaced. Replace after a retake. | User (from the PDF score report) |
 
 ## Architecture: How Each Command Works
 
 Each command is a structured prompt with these layers:
 
 1. **Frontmatter** — registers the command name, description, and argument hint with the Claude Code harness.
-2. **Difficulty and mode rules** — defines easy / medium / hard / absurd / exam / stats behaviour.
+2. **Difficulty and mode rules** — defines easy / medium / hard / absurd / stats behaviour (question construction) and instruction / exam mode (feedback cadence) as two independent axes.
 3. **Arithmetic rule** — instructs use of `python3 -c "print(...)"` via Bash for all calculations.
-4. **Session format** — greet → confirm difficulty → select domain(s) and question count → read history and write `workspace.md` → Q&A loop → final score + session logging.
+4. **Session format** — greet → confirm difficulty → select mode → select domain(s) and question count → read history and write `workspace.md` → Q&A loop → final score + session logging.
 5. **Domain content tables** — the exam subject matter with subtopic codes (e.g. `1.2`, `3.6`) used for performance tracking.
 6. **Question generation guidelines** — domain proportions, distractor patterns, difficulty rules.
 7. **Distractor bank** — reusable wrong-answer patterns with labeled correct answers.
@@ -66,7 +65,6 @@ Passing score for both: 720/1000.
 
 - **Adding a domain or topic:** Add a new subtopic section in the domain content area and update the exam overview table weights so they still sum to 100%.
 - **Adding distractors:** Extend the distractor bank. Keep the pattern: one clearly correct answer, three plausible-but-wrong alternatives.
-- **Adjusting difficulty:** Difficulty definitions are in each command's Difficulty Level section. Easy = direct recall; medium = apply a concept; hard = multi-concept tradeoff; absurd = every option superficially plausible + known exam trap distractor; exam = silent feedback + multi-step reasoning.
+- **Adjusting difficulty:** Difficulty definitions are in each command's Difficulty Level section. Easy = direct recall; medium = apply a concept; hard = multi-concept tradeoff; absurd = every option superficially plausible + known exam trap distractor. Difficulty is independent of mode — see each command's Mode section for instruction (default, feedback per question) vs exam (silent, feedback at the end).
 - **Question count default:** 15 questions per session (user can override during the greeting flow).
-- **Score-report weighting (`/fexam`):** tier shares and objective mapping live in `fexam-scorereport.json`; the selection algorithm is the "Score-Report Weighting" section of `fexam.md`. Every objective's `subtopics` must reference codes that exist in the domain content.
 - **Subtopic codes:** Every domain section has numbered subtopics (e.g. `1.2`, `3.6`). These codes are used in `performance.json` records — do not renumber existing codes when adding new ones.
