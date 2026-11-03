@@ -155,6 +155,7 @@ Never output a computed number without running it through `python3` first.
 - **Answer distribution:** over a full session, correct answers should be as evenly distributed across A/B/C/D as question count allows. For 12 questions: 3 each. Assign correct answer letters randomly so no letter dominates.
 - Wait for the user to answer before showing the next question
 - Show question number and domain: e.g., **Question 3/15 — Domain 3**
+- **Record the graded result immediately.** The instant a question is graded (instruction mode: right after showing CORRECT/INCORRECT; exam mode: right after silently grading), append one row to a running tally you keep for the whole session: `{number, domain, subtopic, correct: true|false, chosen, trick}`. This tally is the only source of truth for the final report — never reconstruct results from memory at the end.
 
 ### After Each Answer (instruction mode only)
 
@@ -168,10 +169,15 @@ In **exam** mode, skip this block entirely regardless of difficulty.
 
 ### After All Questions
 
-Show:
-- Final score (X/Y) — compute percentage and 1000-point scale score via `python3`
-- List of questions answered incorrectly, with subtopic label and the trick that was triggered
-- **If `domain_filter` is `all`:** show the weighted domain score table for the current session using `python3` via Bash. Columns: Domain | Score (correct/total from this session) | Accuracy % | Weight | Contribution (pts). Use the same domain weights as stats mode (D1 17%, D2 13%, D3 19%, D4 16%, D5 14%, D6 14%, D7 7%). Compute weighted total and flag PASS (≥720) or FAIL (<720).
+Derive every number below from the running tally (never recount from memory), then display:
+- Final score (X/Y) — X is the count of tally rows with `correct: true`, Y is the tally length. Compute percentage and 1000-point scale score via `python3`.
+- List of questions answered incorrectly — one row per tally entry with `correct: false`, with subtopic label and the trick that was triggered.
+- **If `domain_filter` is `all`:** show the weighted domain score table for the current session using `python3` via Bash. Columns: Domain | Score (correct/total from this session) | Accuracy % | Weight | Contribution (pts). Build each domain's correct/total by filtering the tally on `domain`. Use the same domain weights as stats mode (D1 17%, D2 13%, D3 19%, D4 16%, D5 14%, D6 14%, D7 7%). Compute weighted total and flag PASS (≥720) or FAIL (<720).
+- **Consistency check before displaying — all three must hold, verified via `python3`:**
+  1. rows in the Incorrect Questions list == Y − X
+  2. sum of the domain table's "Score" numerators == X
+  3. sum of the domain table's "Score" denominators == Y
+  If any check fails, the tally (not the displayed numbers) is correct — recompute every figure above from it and re-verify before showing anything.
 - Offer to re-drill weak domains
 - Append session record to `pexam-performance.json` — see Session Logging
 
